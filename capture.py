@@ -1,10 +1,10 @@
 #!/usr/bin/python
  
-import StringIO
 import subprocess
+import io
 import os
 import time
-from datetime import datetime
+from datetime import datetime,timedelta
 from PIL import Image
 import socket
 #import verify.py
@@ -21,22 +21,23 @@ import socket
 # cameraSettings     - "" = no extra settings; "-hf" = Set horizontal flip of image; "-vf" = Set vertical flip; "-hf -vf" = both horizontal and vertical flip
 threshold = 10
 sensitivity = 20
+focus= 17
 forceCapture = True
 forceCaptureTime = 60*60 # Once an hour
-filepath = "/home/pi/picam"
+filepath = "/home/yuyang/picam"
 hostname = socket.gethostname()
 filenamePrefix = hostname
 diskSpaceToReserve = 256 * 1024 * 1024 # Keep 40 mb free on disk
-cameraSettings = ""
+cameraSettings = "--autofocus-mode auto --tuning-file /usr/share/libcamera/ipa/rpi/pisp/imx477.json " #turn on autofucus
  
 # settings of the photos to save
 saveWidth   = 1600
 saveHeight  = 1200
-saveQuality = 75 # Set jpeg quality (0 to 100)
+saveQuality = 100 # Set jpeg quality (0 to 100)
  
 # Test-Image settings
 testWidth = 100
-testHeight = 75
+testHeight = 76
  
 # this is the default setting, if the whole image should be scanned for changed pixel
 testAreaCount = 1
@@ -66,22 +67,27 @@ debugMode = False # False or True
  
 # Capture a small test image (for motion detection)
 def captureTestImage(settings, width, height):
-    command = "raspistill %s -w %s -h %s -t 500 -e bmp -n -o -" % (settings, width, height)
-    imageData = StringIO.StringIO()
-    imageData.write(subprocess.check_output(command, shell=True))
-    imageData.seek(0)
+    # Constructing the command with the provided settings, width, and height.
+    command = f"rpicam-still {settings} --width {width} --height {height} -t 500 -e bmp -n -o -"
+
+    # Execute the command and capture the output as binary data.
+    imageData = io.BytesIO(subprocess.check_output(command, shell=True))
+
+    # Use PIL to open the image from the binary data in memory.
     im = Image.open(imageData)
     buffer = im.load()
     imageData.close()
     return im, buffer
+    
+
  
 # Save a full size image to disk
 def saveImage(settings, width, height, quality, diskSpaceToReserve):
     keepDiskSpaceFree(diskSpaceToReserve)
     time = datetime.now()
     filename = filepath + "/" + filenamePrefix + "-%04d%02d%02d-%02d%02d%02d.jpg" % (time.year, time.month, time.day, time.hour, time.minute, time.second)
-    subprocess.call("raspistill %s -w %s -h %s -t 1000 -e jpg -q %s -n -o %s" % (settings, width, height, quality, filename), shell=True)
-    print "Captured %s" % filename
+    subprocess.call("rpicam-still %s --width %s --height %s -t 1000 -e jpg -q %s -n -o %s" % (settings, width, height, quality, filename), shell=True)
+    print ("Captured %s" % filename)
  
 # Keep free space above given level
 def keepDiskSpaceFree(bytesToReserve):
@@ -89,7 +95,7 @@ def keepDiskSpaceFree(bytesToReserve):
         for filename in sorted(os.listdir(filepath + "/")):
             if filename.startswith(filenamePrefix) and filename.endswith(".jpg"):
                 os.remove(filepath + "/" + filename)
-                print "Deleted %s/%s to avoid filling disk" % (filepath,filename)
+                print ("Deleted %s/%s to avoid filling disk" % (filepath,filename))
                 if (getFreeSpace() > bytesToReserve):
                     return
  
@@ -106,10 +112,10 @@ def getFreeSpace():
 image1, buffer1 = captureTestImage(cameraSettings, testWidth, testHeight)
  
 # Reset last capture time
-lastCapture = time.time()
+lastCapture = datetime.now()
 # define the txt file of test img (first img)
-initxt = 'runs/detect/predict/labels' + "/" + filenamePrefix + "-%04d%02d%02d-%02d%02d%02d.txt" % (time.year, time.month, time.day, time.hour, time.minute, time.second)
-iniarea= verify.areacount(initxt)
+#initxt = '~/runs/detect/predict/labels' + "/" + filenamePrefix + "-%04d%02d%02d-%02d%02d%02d.txt" % (lastCapture.year, lastCapture.month, lastCapture.day, lastCapture.hour, lastCapture.minute, lastCapture.second)
+#iniarea= verify.areacount(initxt)
 
 while (True):
  
@@ -123,10 +129,10 @@ while (True):
     if (debugMode): # in debug mode, save a bitmap-file with marked changed pixels and with visible testarea-borders
         debugimage = Image.new("RGB",(testWidth, testHeight))
         debugim = debugimage.load()
- 
-    for z in xrange(0, testAreaCount): # = xrange(0,1) with default-values = z will only have the value of 0 = only one scan-area = whole picture
-        for x in xrange(testBorders[z][0][0]-1, testBorders[z][0][1]): # = xrange(0,100) with default-values
-            for y in xrange(testBorders[z][1][0]-1, testBorders[z][1][1]):   # = xrange(0,75) with default-values; testBorders are NOT zero-based, buffer1[x,y] are zero-based (0,0 is top left of image, testWidth-1,testHeight-1 is botton right)
+ #area calculation
+    for z in range(0, testAreaCount): # = xrange(0,1) with default-values = z will only have the value of 0 = only one scan-area = whole picture
+        for x in range(testBorders[z][0][0]-1, testBorders[z][0][1]): # = xrange(0,100) with default-values
+            for y in range(testBorders[z][1][0]-1, testBorders[z][1][1]):   # = xrange(0,75) with default-values; testBorders are NOT zero-based, buffer1[x,y] are zero-based (0,0 is top left of image, testWidth-1,testHeight-1 is botton right)
                 if (debugMode):
                     debugim[x,y] = buffer2[x,y]
                     if ((x == testBorders[z][0][0]-1) or (x == testBorders[z][0][1]-1) or (y == testBorders[z][1][0]-1) or (y == testBorders[z][1][1]-1)):
@@ -150,17 +156,17 @@ while (True):
  
     if (debugMode):
         debugimage.save(filepath + "/debug.bmp") # save debug image as bmp
-        print "debug.bmp saved, %s changed pixel" % changedPixels
+        print ("debug.bmp saved, %s changed pixel" % changedPixels)
     # else:
     #     print "%s changed pixel" % changedPixels
  
     # Check force capture
     if forceCapture:
-        if time.time() - lastCapture > forceCaptureTime:
+        if datetime.now() - lastCapture > timedelta(seconds=forceCaptureTime):
             takePicture = True
  
     if takePicture:
-        lastCapture = time.time()
+        lastCapture = datetime.now()
         saveImage(cameraSettings, saveWidth, saveHeight, saveQuality, diskSpaceToReserve)
 
     #run verify here, save file
