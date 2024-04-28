@@ -7,7 +7,6 @@ import time
 from datetime import datetime,timedelta
 from PIL import Image
 import socket
-#import verify.py
 
 
 
@@ -25,6 +24,7 @@ focus= 17
 forceCapture = True
 forceCaptureTime = 60*60 # Once an hour
 filepath = "/home/yuyang/picam"
+txtfilepath=""
 hostname = socket.gethostname()
 #get hostname to define which host sent alarm
 filenamePrefix = hostname
@@ -86,17 +86,16 @@ def captureTestImage(settings, width, height):
 
 #from below is defining all functions
 
- 
+
 # Save a full size image to disk
 def saveImage(settings, width, height, quality, diskSpaceToReserve):
-    global filename
-    global filenameSuffix
     keepDiskSpaceFree(diskSpaceToReserve)
     time = datetime.now()
     filenameSuffix = filenamePrefix + "-%04d%02d%02d-%02d%02d%02d" % (time.year, time.month, time.day, time.hour, time.minute, time.second)
     filename = filepath + "/" + filenameSuffix + ".jpg"
     subprocess.call("rpicam-still %s --width %s --height %s -t 1000 -e jpg -q %s -n -o %s" % (settings, width, height, quality, filename), shell=True)
     print ("Captured %s" % filename)
+    return filename, filenameSuffix
  
 # Keep free space above given level
 def keepDiskSpaceFree(bytesToReserve):
@@ -119,14 +118,14 @@ def predictImage():
     global filename
     model = YOLO(r"path/to /your/file")
     # accepts all formats - image/dir/Path/URL/video/PIL/ndarray. 0 for webcam
-    results = model.predict(source=filename, show=True, save_txt=True, save=True) 
+    results = model.predict(source=captured_name.filename, show=True, save_txt=True, save=True) 
     # Display preds. Accepts all YOLO predict arguments
     #saving to runs\detect\predict\labels. txt format is:[class] [x_center] [y_center] [width] [height] [confidence]
     return results
 
+#define a function to calculate germination rate
 def calcgermrate():
-    
-    tempfile = f"{txtfolderpath}/filenameSuffix.txt"
+    tempfile = f"{txtfilepath}/{captured_nameSuffix}.txt"
     temparea = areacount(tempfile)
     GerminationRate = temparea / iniarea
     return GerminationRate
@@ -195,7 +194,7 @@ while (True):
  
     if takePicture:
         lastCapture = datetime.now()
-        saveImage(cameraSettings, saveWidth, saveHeight, saveQuality, diskSpaceToReserve)
+        captured_name, captured_nameSuffix =saveImage(cameraSettings, saveWidth, saveHeight, saveQuality, diskSpaceToReserve)
 
     #Predict objects
     results = predictImage()
