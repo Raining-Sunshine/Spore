@@ -7,6 +7,7 @@ import time
 from datetime import datetime,timedelta
 from PIL import Image
 import socket
+from ultralytics import YOLO
 
 
 
