@@ -83,6 +83,7 @@ def captureTestImage(settings, width, height):
  
 # Save a full size image to disk
 def saveImage(settings, width, height, quality, diskSpaceToReserve):
+    global filename
     keepDiskSpaceFree(diskSpaceToReserve)
     time = datetime.now()
     filename = filepath + "/" + filenamePrefix + "-%04d%02d%02d-%02d%02d%02d.jpg" % (time.year, time.month, time.day, time.hour, time.minute, time.second)
