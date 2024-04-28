@@ -90,9 +90,11 @@ def captureTestImage(settings, width, height):
 # Save a full size image to disk
 def saveImage(settings, width, height, quality, diskSpaceToReserve):
     global filename
+    global filenameSuffix
     keepDiskSpaceFree(diskSpaceToReserve)
     time = datetime.now()
-    filename = filepath + "/" + filenamePrefix + "-%04d%02d%02d-%02d%02d%02d.jpg" % (time.year, time.month, time.day, time.hour, time.minute, time.second)
+    filenameSuffix = filenamePrefix + "-%04d%02d%02d-%02d%02d%02d" % (time.year, time.month, time.day, time.hour, time.minute, time.second)
+    filename = filepath + "/" + filenameSuffix + ".jpg"
     subprocess.call("rpicam-still %s --width %s --height %s -t 1000 -e jpg -q %s -n -o %s" % (settings, width, height, quality, filename), shell=True)
     print ("Captured %s" % filename)
  
@@ -121,6 +123,13 @@ def predictImage():
     # Display preds. Accepts all YOLO predict arguments
     #saving to runs\detect\predict\labels. txt format is:[class] [x_center] [y_center] [width] [height] [confidence]
     return results
+
+def calcgermrate():
+    
+    tempfile = f"{txtfolderpath}/filenameSuffix.txt"
+    temparea = areacount(tempfile)
+    GerminationRate = temparea / iniarea
+    return GerminationRate
 
 
 #Start running the program
