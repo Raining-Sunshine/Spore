@@ -124,13 +124,6 @@ def predictImage():
     #saving to runs\detect\predict\labels. txt format is:[class] [x_center] [y_center] [width] [height] [confidence]
     return results
 
-#define a function to calculate germination rate
-def calcgermrate():
-    tempfile = f"{txtfilepath}/{captured_nameSuffix}.txt"
-    temparea = areacount(tempfile)
-    GerminationRate = temparea / iniarea
-    return GerminationRate
-
 #define a function that calculate the total area of all detected objects
 def areacount(pathTotxt):
  #initialize total area
@@ -147,6 +140,13 @@ def areacount(pathTotxt):
         # Handle the file not found error or return a default value
         return 0
     return total_area
+
+#define a function to calculate germination rate
+def calcgermrate():
+    tempfile = f"{txtfilepath}/{captured_nameSuffix}.txt"
+    temparea = areacount(tempfile)
+    GerminationRate = temparea / iniarea
+    return GerminationRate
 
 
 #Start running the program
