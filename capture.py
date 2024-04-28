@@ -26,15 +26,19 @@ forceCapture = True
 forceCaptureTime = 60*60 # Once an hour
 filepath = "/home/yuyang/picam"
 hostname = socket.gethostname()
+#get hostname to define which host sent alarm
 filenamePrefix = hostname
 diskSpaceToReserve = 256 * 1024 * 1024 # Keep 40 mb free on disk
-cameraSettings = "--autofocus-mode auto --tuning-file /usr/share/libcamera/ipa/rpi/pisp/imx477.json " #turn on autofucus
+#use imx477 config and open auto focus
+cameraSettings = "--autofocus-mode auto --tuning-file /usr/share/libcamera/ipa/rpi/pisp/imx477.json " 
  
 # settings of the photos to save
 saveWidth   = 1600
 saveHeight  = 1200
 saveQuality = 100 # Set jpeg quality (0 to 100)
- 
+
+#from below is test mode setting
+
 # Test-Image settings
 testWidth = 100
 testHeight = 76
@@ -78,7 +82,9 @@ def captureTestImage(settings, width, height):
     buffer = im.load()
     imageData.close()
     return im, buffer
-    
+
+
+#from below is defining all functions
 
  
 # Save a full size image to disk
@@ -106,6 +112,16 @@ def getFreeSpace():
     du = st.f_bavail * st.f_frsize
     return du
 
+#use pretrained model to classify all objects
+def predictImage():
+    global filename
+    model = YOLO(r"path/to /your/file")
+    # accepts all formats - image/dir/Path/URL/video/PIL/ndarray. 0 for webcam
+    results = model.predict(source=filename, show=True, save_txt=True, save=True) 
+    # Display preds. Accepts all YOLO predict arguments
+    #saving to runs\detect\predict\labels. txt format is:[class] [x_center] [y_center] [width] [height] [confidence]
+    return results
+
 
 #Start running the program
  
@@ -114,6 +130,7 @@ image1, buffer1 = captureTestImage(cameraSettings, testWidth, testHeight)
  
 # Reset last capture time
 lastCapture = datetime.now()
+
 # define the txt file of test img (first img)
 #initxt = '~/runs/detect/predict/labels' + "/" + filenamePrefix + "-%04d%02d%02d-%02d%02d%02d.txt" % (lastCapture.year, lastCapture.month, lastCapture.day, lastCapture.hour, lastCapture.minute, lastCapture.second)
 #iniarea= verify.areacount(initxt)
@@ -130,6 +147,7 @@ while (True):
     if (debugMode): # in debug mode, save a bitmap-file with marked changed pixels and with visible testarea-borders
         debugimage = Image.new("RGB",(testWidth, testHeight))
         debugim = debugimage.load()
+     
  #area calculation
     for z in range(0, testAreaCount): # = xrange(0,1) with default-values = z will only have the value of 0 = only one scan-area = whole picture
         for x in range(testBorders[z][0][0]-1, testBorders[z][0][1]): # = xrange(0,100) with default-values
@@ -170,8 +188,9 @@ while (True):
         lastCapture = datetime.now()
         saveImage(cameraSettings, saveWidth, saveHeight, saveQuality, diskSpaceToReserve)
 
-    #run verify here, save file
- 
+    #Predict objects
+    results = predictImage()
+
     # Swap comparison buffers
     image1 = image2
     buffer1 = buffer2
