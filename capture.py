@@ -131,6 +131,23 @@ def calcgermrate():
     GerminationRate = temparea / iniarea
     return GerminationRate
 
+#define a function that calculate the total area of all detected objects
+def areacount(pathTotxt):
+ #initialize total area
+    total_area = 0
+    try:
+        with open(pathTotxt, 'r') as file:
+            for line in file:
+                components = line.split()
+                if len(components) == 6:  # Ensure there are enough components to avoid errors
+                    area = float(components[3]) * float(components[4])
+                    total_area += area
+    except FileNotFoundError:
+        print(f"File not found: {pathTotxt}")
+        # Handle the file not found error or return a default value
+        return 0
+    return total_area
+
 
 #Start running the program
  
