@@ -25,7 +25,7 @@ focus= 17
 forceCapture = True
 forceCaptureTime = 60*60 # Once an hour
 filepath = "/home/yuyang/picam"
-txtfilepath=""
+txtfilepath="/home/yuyang/runs/detect/predict/labels"
 hostname = socket.gethostname()
 #get hostname to define which host sent alarm
 filenamePrefix = hostname
@@ -117,9 +117,9 @@ def getFreeSpace():
 #use pretrained model to classify all objects
 def predictImage():
     global filename
-    model = YOLO(r"path/to /your/file")
+    model = YOLO(r"/home/yuyang/scripts/best.pt")
     # accepts all formats - image/dir/Path/URL/video/PIL/ndarray. 0 for webcam
-    results = model.predict(source=captured_name.filename, show=True, save_txt=True, save=True) 
+    results = model.predict(source=captured_name, show=True, save_txt=True, save=True) 
     # Display preds. Accepts all YOLO predict arguments
     #saving to runs\detect\predict\labels. txt format is:[class] [x_center] [y_center] [width] [height] [confidence]
     return results
@@ -212,10 +212,11 @@ while (True):
  
     if takePicture:
         lastCapture = datetime.now()
-        captured_name, captured_nameSuffix =saveImage(cameraSettings, saveWidth, saveHeight, saveQuality, diskSpaceToReserve)
+        captured_name, captured_nameSuffix=saveImage(cameraSettings, saveWidth, saveHeight, saveQuality, diskSpaceToReserve)
+        #Predict objects
+        results = predictImage()
 
-    #Predict objects
-    results = predictImage()
+    
 
     # Swap comparison buffers
     image1 = image2
