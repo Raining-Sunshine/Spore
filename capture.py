@@ -21,6 +21,7 @@ from ultralytics import YOLO
 # cameraSettings     - "" = no extra settings; "-hf" = Set horizontal flip of image; "-vf" = Set vertical flip; "-hf -vf" = both horizontal and vertical flip
 threshold = 10
 sensitivity = 20
+alarmlevel = 0.3
 focus= 17
 forceCapture = True
 forceCaptureTime = 60*60 # Once an hour
@@ -119,7 +120,7 @@ def predictImage():
     global filename
     model = YOLO(r"/home/yuyang/scripts/best.pt")
     # accepts all formats - image/dir/Path/URL/video/PIL/ndarray. 0 for webcam
-    results = model.predict(source=captured_name, show=True, save_txt=True, save=True) 
+    results = model.predict(source=captured_name, show=False,save_txt=True,save=True, project= "/home/yuyang/runs/detect", exist_ok= True) 
     # Display preds. Accepts all YOLO predict arguments
     #saving to runs\detect\predict\labels. txt format is:[class] [x_center] [y_center] [width] [height] [confidence]
     return results
@@ -147,6 +148,18 @@ def calcgermrate():
     temparea = areacount(tempfile)
     GerminationRate = temparea / iniarea
     return GerminationRate
+    
+def alarm(germrate, alarm_sound='path/to/alarm/file'):
+    if germrate > alarmlevel:
+        # Load the sound
+        pygame.mixer.music.load(alarm_sound)
+        for _ in range(3):  # Play it 3 times
+            pygame.mixer.music.play()
+            # Wait for the sound to finish playing
+            while pygame.mixer.music.get_busy():
+                time.sleep(1)
+        # After playing the sound 3 times, stop the mixer
+        pygame.mixer.music.stop()
 
 
 #Start running the program
