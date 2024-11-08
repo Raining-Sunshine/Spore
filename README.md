@@ -3,6 +3,7 @@
 rpicam-hello -t 0 --tuning-file /usr/share/libcamera/ipa/rpi/pisp/imx477.json --info-text "%focus"
 
 #for AI camera
+
 rpicam-hello -t 0 --tuning-file /usr/share/libcamera/ipa/rpi/pisp/imx500.json --info-text "%focus"
 
 #activate virtual environment
