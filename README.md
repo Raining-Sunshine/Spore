@@ -15,3 +15,7 @@ source /home/yuyang/.venv/bin/activate
 python3 /home/yuyang/scripts/capture.py
 #latest ver
 python3 /home/yuyang/Downloads/capture.py
+
+#new Arducam
+
+rpicam-hello -t 0 --tuning-file /home/pi/Downloads/imx477_af.json --info-text "%focus"
