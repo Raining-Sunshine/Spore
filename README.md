@@ -18,4 +18,4 @@ python3 /home/yuyang/Downloads/capture.py
 
 #new Arducam
 
-rpicam-hello -t 0 --tuning-file /home/pi/Downloads/imx477_af.json --info-text "%focus"
+rpicam-hello -t 0 --tuning-file /usr/share/libcamera/ipa/rpi/pisp/imx477_af.json --info-text "%focus"
