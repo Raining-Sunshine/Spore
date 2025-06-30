@@ -2,22 +2,28 @@
 
 rpicam-hello -t 0 --tuning-file /usr/share/libcamera/ipa/rpi/pisp/imx477.json --info-text "%focus"
 
-
 #activate virtual environment
 
 source /home/yuyang/.venv/bin/activate
 
 #run python script
+
 #LTSC
+
 python3 /home/yuyang/scripts/capture.py
+
 #latest ver
+
 python3 /home/yuyang/Downloads/capture.py
 
 自动捕捉识别指南：
+
 系统连接在初期阶段要通过显示器和键盘。连接eduroam后就可以拔下键盘和显示器，利用VNC或者ssh功能进行连接。
+
 RPI 5设备的密码可以找Chris要，平时可以通过云平台来连接。 RPI2W的账号是yuyang，密码yuyangzhang。
 
 首先，在一切之前，我们需要将系统更新到最新版
+
 通过终端里sudo apt update 或者 sudo apt upgrade来完成更新。
 
 更新结束后，我们利用导航命令cd， 导航至script的文件夹。
